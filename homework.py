@@ -20,15 +20,20 @@ class InfoMessage:
         return (self.MESSAGE_TEXT.format(**asdict(self)))
 
 
-@dataclass
 class Training:
     """Базовый класс тренировки."""
     M_IN_KM = 1000
     LEN_STEP = 0.65
     MINUTES_IN_HOUR = 60
-    action: int
-    duration: float
-    weight: float
+
+    def __init__(self,
+                 action: int,
+                 duration: float,
+                 weight: float,
+                 ) -> None:
+        self.action = action
+        self.duration = duration
+        self.weight = weight
 
     def get_distance(self) -> float:
         """Получить дистанцию в км."""
@@ -50,7 +55,6 @@ class Training:
                            self.get_spent_calories())
 
 
-@dataclass
 class Running(Training):
     """Тренировка: бег."""
     COEFF_CALORIES_1 = 18
@@ -63,12 +67,19 @@ class Running(Training):
                 * self.duration * self.MINUTES_IN_HOUR)
 
 
-@dataclass
 class SportsWalking(Training):
     """Тренировка: спортивная ходьба."""
     COEFF_CALORIES_1 = 0.035
     COEFF_CALORIES_2 = 0.029
-    height: float
+
+    def __init__(self,
+                 action: int,
+                 duration: float,
+                 weight: float,
+                 height: float
+                 ) -> None:
+        super().__init__(action, duration, weight)
+        self.height = height
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
@@ -78,14 +89,22 @@ class SportsWalking(Training):
                 * self.MINUTES_IN_HOUR)
 
 
-@dataclass
 class Swimming(Training):
     """Тренировка: плавание."""
     LEN_STEP = 1.38
     COEFF_CALORIES_1 = 1.1
     COEFF_CALORIES_2 = 2
-    length_pool: float
-    count_pool: float
+
+    def __init__(self,
+                 action: int,
+                 duration: float,
+                 weight: float,
+                 length_pool: float,
+                 count_pool: float
+                 ) -> None:
+        super().__init__(action, duration, weight)
+        self.length_pool = length_pool
+        self.count_pool = count_pool
 
     def get_mean_speed(self) -> float:
         """Получить среднюю скорость движения."""
@@ -105,7 +124,8 @@ def read_package(workout_type: str, data: list) -> Training:
         'WLK': (SportsWalking),
         'SWM': (Swimming)
     }
-    assert workout_type in workout_types, 'Неизвестный тип тренировки.'
+    if workout_type not in workout_types:
+        raise KeyError(f'Неизвестный тип тренировки: {workout_type}.')
     return workout_types[workout_type](*data)
 
 
